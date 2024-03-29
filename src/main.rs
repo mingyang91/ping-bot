@@ -2,20 +2,18 @@
 use std::collections::BTreeMap;
 use std::net::IpAddr;
 use std::time::Duration;
-use base64::engine::GeneralPurpose;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 
 use sha2::Sha256;
 use hmac::{Hmac, KeyInit, Mac};
 use clap::Parser;
-use surge_ping::{Client, Config, IcmpPacket, Pinger, PingIdentifier, PingSequence, SurgeError};
+use surge_ping::{Client, Config, PingIdentifier, PingSequence, SurgeError};
 use surge_ping::IcmpPacket::{V4, V6};
 use thiserror::Error;
 use tokio::{io, join};
 use leaky_bucket::RateLimiter;
 use reqwest::StatusCode;
-use tracing;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
