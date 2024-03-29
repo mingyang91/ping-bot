@@ -710,26 +710,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "network-status-bot"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.0",
- "chrono",
- "clap",
- "hmac",
- "ping",
- "reqwest",
- "serde",
- "serde_json",
- "sha2",
- "surge-ping",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "no-std-net"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -899,6 +879,26 @@ dependencies = [
  "rand",
  "socket2 0.4.10",
  "thiserror",
+]
+
+[[package]]
+name = "ping-bot"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.0",
+ "chrono",
+ "clap",
+ "hmac",
+ "ping",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "surge-ping",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
