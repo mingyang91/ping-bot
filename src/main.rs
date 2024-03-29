@@ -12,7 +12,6 @@ use surge_ping::{Client, Config, PingIdentifier, PingSequence, SurgeError};
 use surge_ping::IcmpPacket::{V4, V6};
 use thiserror::Error;
 use tokio::{io, join};
-use leaky_bucket::RateLimiter;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -37,6 +36,10 @@ struct Cli {
     address: IpAddr,
     #[arg(short, long, value_parser = parse_duration, default_value = "1")]
     timeout: Duration,
+    #[arg(short, long, default_value = "0.9")]
+    ratio: f32,
+    #[arg(long, default_value = "60")]
+    window: i32,
     #[command(flatten)]
     lark: LarkClient,
 }
@@ -126,16 +129,16 @@ async fn main() -> Result<(), Error> {
         .map_err(Error::from)?;
     let mut pinger = client.pinger(cli.address, PingIdentifier(11451)).await;
 
-    let limiter = RateLimiter::builder()
-        .max(30)
-        .initial(0)
-        .interval(Duration::from_secs(10))
-        .refill(1)
-        .build();
-
+    let fail_ratio = 1.0 - cli.ratio;
     let mut last_status = false;
+    let mut accumulator = 0f32;
     let mut seq: u16 = 0;
     loop {
+        if accumulator > cli.window as f32 {
+            accumulator = cli.window as f32;
+        } else if -accumulator > cli.window as f32 {
+            accumulator = -cli.window as f32;
+        }
         let check = async {
             match pinger.ping(PingSequence(seq), &[0; 8]).await {
                 Ok((packet, duration)) => {
@@ -148,12 +151,11 @@ async fn main() -> Result<(), Error> {
                              cli.address,
                              packet.get_sequence(),
                              duration);
+                    accumulator += 1.0;
                 },
                 Err(err) => {
                     tracing::trace!("error: {}", err);
-                    if limiter.balance() > 0 {
-                        limiter.acquire_one().await;
-                    }
+                    accumulator -= 1.0 / fail_ratio;
                 }
             }
         };
@@ -161,9 +163,11 @@ async fn main() -> Result<(), Error> {
             check,
             tokio::time::sleep(cli.timeout)
         );
+        seq += 1;
 
-        let status = limiter.balance() > 0;
-        if last_status == status { continue; }
+        tracing::info!("accumulator: {}", accumulator);
+        let status = accumulator > 0.0;
+        if status == last_status { continue; }
         last_status = status;
         if status {
             tracing::info!("{} server is available", cli.address);
@@ -185,7 +189,6 @@ async fn main() -> Result<(), Error> {
                 tracing::error!("send message error: {}", e);
             }
         }
-        seq += 1;
     }
 }
 
