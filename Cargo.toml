@@ -1,0 +1,21 @@
+[package]
+name = "network-status-bot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ping = "0.5.2"
+tokio = { version = "1.36.0", features = ["net", "rt-multi-thread", "macros", "sync", "time"] }
+thiserror = "1.0.58"
+clap = { version = "4.5.4", features = ["derive"] }
+surge-ping = "0.8.1"
+tracing = "0.1.40"
+leaky-bucket = "1.0.1"
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.115"
+tracing-subscriber = "0.3.18"
+reqwest = { version = "0.12.2", features = ["json"] }
+base64 = "0.22.0"
+sha2 = "0.11.0-pre.3"
+hmac = "0.13.0-pre.3"
+chrono = "0.4.37"
